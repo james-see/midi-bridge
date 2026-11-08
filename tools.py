@@ -47,6 +47,7 @@ def send_note(args: dict, **kwargs) -> str:
         import time
         time.sleep(duration)
         midi_utils.send_midi(msg_off)
+        midi_utils.record_activity(midi_utils.number_to_note(note_num), velocity, channel, "note")
         return json.dumps({"note": midi_utils.number_to_note(note_num), "velocity": velocity, "duration": duration})
     except ImportError:
         return json.dumps({"error": "mido not installed"})
@@ -169,6 +170,10 @@ def drum_pattern(args: dict, **kwargs) -> str:
     # Run in a thread so we don't block the agent
     import threading
     result = pattern_player.play_drum_pattern(steps, bpm, bars, channel)
+    # Record activity for the monitor
+    for item in steps:
+        for drum_name in item.get("drums", []):
+            midi_utils.record_activity(drum_name, 100, channel, "drum")
     return json.dumps(result)
 
 

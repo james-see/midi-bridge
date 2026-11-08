@@ -5,6 +5,7 @@ author: "@james-see"
 license: MIT
 homepage: https://github.com/james-see/midi-bridge
 requires_hermes: ">=0.22.0"
+api: plugin_api.py
 provides_tools:
   - send_note
   - send_notes

@@ -97,6 +97,35 @@ _output_port: Optional[str] = None
 _virtual_port_name = "MIDI Bridge"
 _virtual_port = None  # mido port object
 
+# ---------------------------------------------------------------------------
+# Activity ring buffer (for /midi activity + desktop monitor)
+# ---------------------------------------------------------------------------
+
+_activity_buffer: list[dict] = []
+_activity_lock = threading.Lock()
+_ACTIVITY_MAX = 50
+
+
+def record_activity(note: str, velocity: int, channel: int, kind: str = "note") -> None:
+    """Record a MIDI event in the activity ring buffer."""
+    import time
+    with _activity_lock:
+        _activity_buffer.append({
+            "note": note,
+            "velocity": velocity,
+            "channel": channel,
+            "kind": kind,
+            "time": time.time(),
+        })
+        if len(_activity_buffer) > _ACTIVITY_MAX:
+            _activity_buffer.pop(0)
+
+
+def get_activity(count: int = 20) -> list[dict]:
+    """Return recent MIDI activity."""
+    with _activity_lock:
+        return list(_activity_buffer[-count:])
+
 
 def set_virtual_port_name(name: str) -> None:
     global _virtual_port_name

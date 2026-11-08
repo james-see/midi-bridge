@@ -8,6 +8,7 @@ a slash command and 7 bundled skills (core + 6 genre recipes).
 from __future__ import annotations
 
 import logging
+import time
 from pathlib import Path
 
 from . import schemas, tools, midi_utils
@@ -27,11 +28,22 @@ def _handle_midi_command(raw_args: str) -> str:
         if len(parts) > 1:
             return tools.set_output({"port_name": parts[1]})
         return "Usage: /midi port <name>  (use /midi ports to list available)"
+    elif parts[0] == "activity":
+        count = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 20
+        activity = midi_utils.get_activity(count)
+        if not activity:
+            return "No MIDI activity yet. Play some notes first."
+        lines = [f"Last {len(activity)} MIDI events:"]
+        for evt in activity:
+            t = time.strftime("%H:%M:%S", time.localtime(evt["time"]))
+            lines.append(f"  {t} [{evt['kind']}] {evt['note']} vel={evt['velocity']} ch={evt['channel']}")
+        return "\n".join(lines)
     return (
-        "Usage: /midi [ports|test|port <name>]\n"
-        "  ports — list available MIDI ports\n"
-        "  test   — play a test note (C4)\n"
-        "  port <name> — set output port"
+        "Usage: /midi [ports|test|port <name>|activity]\n"
+        "  ports    — list available MIDI ports\n"
+        "  test     — play a test note (C4)\n"
+        "  port <name> — set output port\n"
+        "  activity — show recent MIDI events"
     )
 
 
