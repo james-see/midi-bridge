@@ -167,6 +167,7 @@ def list_ports() -> list[str]:
 
 def send_midi(msg) -> bool:
     """Send a mido Message to the active output port."""
+    global _virtual_port
     port = get_output_port()
     if port is None:
         return False
