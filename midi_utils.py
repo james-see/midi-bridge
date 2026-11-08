@@ -167,17 +167,15 @@ def list_ports() -> list[str]:
 
 def send_midi(msg) -> bool:
     """Send a mido Message to the active output port."""
-    global _virtual_port
     port = get_output_port()
     if port is None:
         return False
     try:
         import mido
-        with _port_lock:
-            if _virtual_port is None:
-                # Re-open
-                _virtual_port = mido.open_output(port, virtual=True)
-            _virtual_port.send(msg)
+        out = mido.open_output(port)
+        out.send(msg)
+        # Don't close — keep the port open for subsequent notes
+        # mido caches open ports by name
         return True
     except Exception as exc:
         logger.warning("MIDI send failed: %s", exc)
